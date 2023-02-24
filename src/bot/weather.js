@@ -15,6 +15,6 @@ export function getWeather(city) {
     })
     .catch((error) => {
       console.log(error);
-      return 'No se pudo obtener el clima, coloca una ciudad.';
+      return 'No se pudo obtener el clima, coloca otra ciudad.';
     });
 }

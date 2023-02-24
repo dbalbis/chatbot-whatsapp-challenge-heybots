@@ -26,7 +26,7 @@ export class mongoContainer {
         return null;
       }
     } catch (error) {
-      logger.error('Error buscando los mensajes', error);
+      console.log('Error buscando los mensajes', error);
     }
   }
 }

@@ -7,11 +7,11 @@ import generateSessionId from '../utils/generateSessionId.js';
 import userModel from '../models/userModel.js';
 
 ('use strict');
-process.env.DEBUG = 'dialogflow:debug'; // enables lib debugging statements
+process.env.DEBUG = 'dialogflow:debug'; // habilita declaraciones de depuración de la librería
 const router = express.Router();
 
 let sessionId = generateSessionId();
-
+/* Para que no muestre 2 veces el mensaje de bienvenida la primera vez */
 let firstTime = true;
 
 // Endpoint para Twilio
@@ -38,9 +38,16 @@ router.post('/', async (req, res) => {
       );
 
       // Procesa la respuesta de Dialogflow y envía la respuesta a través de Twilio
-      let responses = dialogflowResponse.fulfillmentMessages;
-      for (const response of responses) {
-        await twilioSendMessage(phone, response.text.text[0]);
+      let responses = dialogflowResponse?.fulfillmentMessages ?? null;
+      if (responses) {
+        for (const response of responses) {
+          await twilioSendMessage(phone, response.text.text[0]);
+        }
+      } else {
+        await twilioSendMessage(
+          phone,
+          '🤖 Estoy progamado solamente para responder texto.'
+        );
       }
     }
   } else {
@@ -54,9 +61,16 @@ router.post('/', async (req, res) => {
     );
 
     // Procesa la respuesta de Dialogflow y envía la respuesta a través de Twilio
-    let responses = dialogflowResponse.fulfillmentMessages;
-    for (const response of responses) {
-      await twilioSendMessage(phone, response.text.text[0]);
+    let responses = dialogflowResponse?.fulfillmentMessages ?? null;
+    if (responses) {
+      for (const response of responses) {
+        await twilioSendMessage(phone, response.text.text[0]);
+      }
+    } else {
+      await twilioSendMessage(
+        phone,
+        '🤖 Estoy progamado solamente para responder texto.'
+      );
     }
   }
 
@@ -67,7 +81,7 @@ router.post('/', async (req, res) => {
 router.post('/dialogflow', (req, res) => {
   const agent = new WebhookClient({ request: req, response: res });
 
-  /* Salir Intent */
+  /* Welcome Intent */
   async function handleWelcomeIntent(agent) {
     try {
       const phone = process.env.PHONE;
@@ -96,9 +110,9 @@ router.post('/dialogflow', (req, res) => {
         const parameters = agent.parameters;
         const city = parameters.city;
         const weatherData = await getWeather(city);
-        await agent.add(weatherData);
-        await agent.add('¿Quiéres consultar alguna otra ciudad? 🚀');
-        await agent.add('_Si quieres terminar la conversacion escribe SALIR_');
+        await agent.add(
+          `${weatherData}\n\n¿Quiéres consultar alguna otra ciudad? 🚀\n_Si quieres terminar la conversacion escribe SALIR_`
+        );
       } else {
         await agent.add(
           '¡Hola Soy un climaBOT 🤖!\nPara poder darte informacion, necesito que te registres. \n \n📲 Escribe REGISTRAR para continuar. \n \nO si no lo deseas simplemente escribe Salir.'
@@ -118,7 +132,7 @@ router.post('/dialogflow', (req, res) => {
       const lastname = parameters.lastname;
       const email = parameters.email;
 
-      // Hacer algo con los parámetros recibidos
+      // Nuevo usuario
       const newUser = {
         firstname,
         lastname,
