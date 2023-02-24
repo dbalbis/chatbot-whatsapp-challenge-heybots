@@ -11,67 +11,28 @@ process.env.DEBUG = 'dialogflow:debug'; // habilita declaraciones de depuración
 const router = express.Router();
 
 let sessionId = generateSessionId();
-/* Para que no muestre 2 veces el mensaje de bienvenida la primera vez */
-let firstTime = true;
 
 // Endpoint para Twilio
 router.post('/', async (req, res) => {
   let phone = req.body.WaId;
   /* Para poder acceder al valor de phone desde el otro endpoint */
   process.env.PHONE = phone;
-  const isUser = await userModel.find(phone);
 
-  if (isUser) {
-    if (firstTime) {
-      await twilioSendMessage(
-        phone,
-        `¡Hola ${isUser[0].firstname}, soy climaBOT 🤖!\n \n🌎 Escribe el nombre de una ciudad para saber su clima. \nEj: _Montevideo._\n \n_O si no lo deseas simplemente escribe Salir._`
-      );
+  let receivedMessage = req.body.Body;
+  // Llama al endpoint de Dialogflow para manejar el mensaje recibido
+  const dialogflowResponse = await sendToDialogFlow(receivedMessage, sessionId);
 
-      firstTime = false;
-    } else {
-      let receivedMessage = req.body.Body;
-      // Llama al endpoint de Dialogflow para manejar el mensaje recibido
-      const dialogflowResponse = await sendToDialogFlow(
-        receivedMessage,
-        sessionId
-      );
-
-      // Procesa la respuesta de Dialogflow y envía la respuesta a través de Twilio
-      let responses = dialogflowResponse?.fulfillmentMessages ?? null;
-      if (responses) {
-        for (const response of responses) {
-          await twilioSendMessage(phone, response.text.text[0]);
-        }
-      } else {
-        await twilioSendMessage(
-          phone,
-          '🤖 Estoy progamado solamente para responder texto.'
-        );
-      }
+  // Procesa la respuesta de Dialogflow y envía la respuesta a través de Twilio
+  let responses = dialogflowResponse?.fulfillmentMessages ?? null;
+  if (responses) {
+    for (const response of responses) {
+      await twilioSendMessage(phone, response.text.text[0]);
     }
   } else {
-    let receivedMessage = req.body.Body;
-    console.log('Phone:', phone);
-
-    // Llama al endpoint de Dialogflow para manejar el mensaje recibido
-    const dialogflowResponse = await sendToDialogFlow(
-      receivedMessage,
-      sessionId
+    await twilioSendMessage(
+      phone,
+      '🤖 Estoy progamado solamente para responder texto.'
     );
-
-    // Procesa la respuesta de Dialogflow y envía la respuesta a través de Twilio
-    let responses = dialogflowResponse?.fulfillmentMessages ?? null;
-    if (responses) {
-      for (const response of responses) {
-        await twilioSendMessage(phone, response.text.text[0]);
-      }
-    } else {
-      await twilioSendMessage(
-        phone,
-        '🤖 Estoy progamado solamente para responder texto.'
-      );
-    }
   }
 
   res.status(200).end();
