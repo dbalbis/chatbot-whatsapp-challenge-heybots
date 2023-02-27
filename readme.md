@@ -23,7 +23,7 @@ PHONE=<valor_de_phone> (DEJAR ASI)
 ## Descripcion:
 El Chatbot consta de dos endpoints:
 
- -   `/`: Este endpoint maneja los mensajes enviados por los usuarios a través de Twilio. Cuando un usuario envía un mensaje a través de Twilio, primero verifica si el usuario está registrado en la base de datos y si no lo está, lo invita a registrarse. A continuación, el mensaje se envía al endpoint Dialogflow utilizando la función `sendToDialogFlow`. Si Dialogflow devuelve una respuesta, se envía a través de Twilio. Si no hay respuesta, se envía un mensaje de error al usuario.
+ -   `/`: Este endpoint maneja los mensajes enviados por los usuarios a través de Twilio. Cuando un usuario envía un mensaje a través de Twilio, el mensaje se envía al endpoint Dialogflow utilizando la función `sendToDialogFlow`. Si Dialogflow devuelve una respuesta, se envía a través de Twilio. Si no hay respuesta, se envía un mensaje de error al usuario.
  -   `/dialogflow`: Este endpoint maneja las solicitudes entrantes de Dialogflow. Hay cuatro intenciones configuradas en Dialogflow: bienvenida, clima, registro y salir. Cuando Dialogflow detecta la intención de un usuario, llama a la función correspondiente en el código. Si el usuario ya está registrado, el bot devuelve la información del clima para la ciudad solicitada. Si el usuario no está registrado, se le pide que se registre antes de poder obtener información sobre el clima.
 ## Dependencias utilizadas
  - Axios 
